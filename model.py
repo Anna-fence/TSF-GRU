@@ -31,9 +31,9 @@ class GRU(nn.Module):
         out = self.linear(hidden)
         return out
 
-    def set_params(self, need_train, has_features, train_window, test_window, epoch, optimizer, loss_function, model_name, k_fold):
+    def set_params(self, has_features, train_window, test_window, epoch, optimizer, loss_function, model_name, k_fold):
         # 属性
-        self.need_train = need_train
+        # self.need_train = need_train
         self.has_features = has_features
         self.train_window = train_window
         self.test_window = test_window
@@ -118,7 +118,7 @@ class GRU(nn.Module):
         torch.save(model.state_dict(), f'./MODEL/STLandGRU/{self.model_name}.pt')
         print('time cost', time_end - time_start, 's')
 
-    def train_model_nf(self, model, train_X, train_Y):
+    def train_model_nf(self, model:torch.nn.Module, train_X:torch.Tensor, train_Y:torch.Tensor):
         time_start = time.time()
         model = model.cuda()
         loss_function = self.loss_function.cuda()
@@ -175,21 +175,21 @@ class GRU(nn.Module):
             print('time cost', time_end - time_start, 's')
 
     # 评估也在gpu上完成
-    def eval_GRU_nf(self, model, test_set):
-        train_window = self.train_window
-        time_start = time.time()
+    def eval_GRU_nf(self, model: torch.nn.Module, test_set: np.ndarray):
+        train_window: int = self.train_window
+        time_start: float = time.time()
         model.eval()
         # model = model.cpu()
-        pred_value = []
-        t_sum = 0.0
+        pred_value: list = []
+        t_sum: float = 0.0
         with torch.no_grad():
             for test_idx in range(len(test_set) - train_window):
-                test_seq = torch.FloatTensor(test_set[test_idx: test_idx + train_window, :]).reshape((-1, 1))
+                test_seq: torch.FloatTensor = torch.FloatTensor(test_set[test_idx: test_idx + train_window, :]).reshape((-1, 1))
                 test_seq = test_seq.cuda()
                 pred, t = self.predict_value_nf(self, model, test_seq)
                 t_sum = t + t_sum
                 pred_value.append(pred[-1, :])
-        time_end = time.time()
+        time_end: float = time.time()
         print(f'average cost time per inference: {t_sum / len(pred_value)}s')
         print('time cost', time_end - time_start, 's')
         return pred_value

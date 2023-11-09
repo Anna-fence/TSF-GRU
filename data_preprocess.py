@@ -145,7 +145,7 @@ class Utils:
         plt.ylabel("RIP (dbm)")
         plt.legend(loc="best")  # 图例
         plt.title(u"{}".format(pic_name))
-        plt.savefig(f"./RESULT/STLandGRU/{model_name}.png")
+        plt.savefig(f"./RESULT/GRU/{model_name}.png")
         # plt.savefig(f"/kaggle/working/{model_name}.png")
         # plt.show()
 
