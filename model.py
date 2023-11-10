@@ -13,6 +13,7 @@ class GRU(nn.Module):
         super(GRU, self).__init__()
         self.gru = nn.GRU(input_dim, hidden_dim)
         self.linear = nn.Linear(hidden_dim, output_dim)
+        self.logistic = nn.Sigmoid()
 
         self.has_features = False
 
@@ -29,6 +30,7 @@ class GRU(nn.Module):
     def forward(self, input_seq):
         gru_out, hidden = self.gru(input_seq)
         out = self.linear(hidden)
+        out = self.logistic(out)
         return out
 
     def set_params(self, has_features, train_window, test_window, epoch, optimizer, loss_function, model_name, k_fold):
@@ -118,7 +120,7 @@ class GRU(nn.Module):
         torch.save(model.state_dict(), f'./MODEL/STLandGRU/{self.model_name}.pt')
         print('time cost', time_end - time_start, 's')
 
-    def train_model_nf(self, model:torch.nn.Module, train_X:torch.Tensor, train_Y:torch.Tensor):
+    def train_model_nf(self, model: torch.nn.Module, train_X: torch.Tensor, train_Y: torch.Tensor):
         time_start = time.time()
         model = model.cuda()
         loss_function = self.loss_function.cuda()
@@ -151,14 +153,16 @@ class GRU(nn.Module):
         loss_function = self.loss_function.cuda()
         model.train()
 
+        data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
         for i in range(self.epochs):
             sum_loss = 0.0
-            data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
-
             for batch_data, batch_label in data_loader:
                 self.optimizer.zero_grad()
                 batch_data, batch_label = batch_data.cuda(), batch_label.cuda()
+                length = batch_data.shape[0]
+                batch_data = batch_data.view(-1, length, 1)  # GRU的输入第二维度是batch_size，注意可能会多个余数
                 batch_value = model(batch_data)
+                batch_value = batch_value.view(length, 1, 1)
                 batch_loss = loss_function(batch_value, batch_label)
                 sum_loss += batch_loss.item()
                 batch_loss.backward()
@@ -166,13 +170,13 @@ class GRU(nn.Module):
 
             if i % 10 == 1:
                 print(f'epoch: {i:3} loss: {sum_loss / len(data_loader):10.8f}')
+            else:
+                print(f'epoch: {i:3} loss: {sum_loss / len(data_loader):10.10f}')
 
-            print(f'epoch: {i:3} loss: {sum_loss / len(data_loader):10.10f}')
-
-            # 模型保存
-            time_end = time.time()
-            torch.save(model.state_dict(), f'./MODEL/GRU/{self.model_name}.pt')
-            print('time cost', time_end - time_start, 's')
+        # 模型保存
+        time_end = time.time()
+        torch.save(model.state_dict(), f'./MODEL/GRU/{self.model_name}.pt')
+        print('time cost', time_end - time_start, 's')
 
     # 评估也在gpu上完成
     def eval_GRU_nf(self, model: torch.nn.Module, test_set: np.ndarray):

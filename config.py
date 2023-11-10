@@ -8,7 +8,7 @@ parser.add_argument('--test_window', type=int, default=1)
 parser.add_argument('--WBorRB', type=int, default=1)
 parser.add_argument('--feature_index', type=int, default=0)
 parser.add_argument('--k_fold', type=int, default=1)
-parser.add_argument('--dataset', type=str, default='ul_interference_data.csv')
+parser.add_argument('--dataset', type=str, default='ul_interference_data_dbm.csv')
 arguments = parser.parse_args().__dict__
 
 lr = arguments['lr']

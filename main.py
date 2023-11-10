@@ -32,8 +32,8 @@ if __name__ == "__main__":
     n_input = 1
     n_output = 1
     data_type = dataset.split('_')[-1]
-    model_name = f'tw{100}_epT{epoch}_hiddenT{hidden_size}_lr{lr}_GRUModel'
-    pic_name = f"{data_type}_tw{test_window}_lr{lr}_{epoch}_{hidden_size}"
+    model_name = f'tw{100}_epT{epoch}_hiddenT{hidden_size}_lr{lr}_GRUModel_exp1'
+    pic_name = f"{data_type}_tw{test_window}_lr{lr}_{epoch}_{hidden_size}_exp1"
     filepath = './DATA/'
 
     # 实例化工具包
@@ -42,12 +42,12 @@ if __name__ == "__main__":
     print("preparing data...")
     csv_data = pd.read_csv(filepath + dataset, delimiter=',', index_col=0)
     df = pd.DataFrame(csv_data)
-    # 把数据转换为dbm
-    constant = -10 * math.log10(4096) - 10 * math.log10(2 ** 30) - 15 + 18
+    # 把数据转换为0/1
+    threshold = -105
     for i in range(len(df['WB'])):
-        df['WB'][i] = 10 * math.log10(df['WB'][i]) + constant
+        df['WB'][i] = 0 if df['WB'][i] < threshold else 1
     # df.iloc[:, -1] = 10 * math.log10(df.iloc[:, -1]) + constant
-    df.to_csv(filepath + 'ul_interference_data_dbm.csv')
+    df.to_csv(filepath + 'ul_interference_data_classification_105.csv')
     WB_RIP_data = df['WB'].values[-200000:]
     WB_RIP_data = WB_RIP_data.reshape((len(WB_RIP_data), 1))
     train_WB, test_WB = utils.split_data(WB_RIP_data, train_set_ratio=0.7)
@@ -58,16 +58,16 @@ if __name__ == "__main__":
     dataset = MyDataset(train_X, train_Y)
 
     model = GRU(input_dim=n_input, hidden_dim=hidden_size, output_dim=n_output)
-    model.need_train = False
+    model.need_train = True
     if model.need_train:
         print("training model...")
-        loss_function = nn.MSELoss()
+        loss_function = nn.CrossEntropyLoss()
         optimizer_trend = torch.optim.Adam(model.parameters(), lr=lr)
         # 模型参数设置
         model.set_params(False, train_window, test_window, epoch, optimizer_trend, loss_function,
                          model_name, k_fold)
         # 模型训练
-        model.train_model_with_batches(model, dataset, 8)
+        model.train_model_with_batches(model, dataset, batch_size=8)
         print("finish!")
 
     else:
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     # 模型测试
     pred = model.eval_GRU_nf(model, test_WB)
-    # 对预测值取整
+    pred = [1 if i > 0.5 else 0 for i in pred]
     pred = np.array(pred).reshape((len(pred), 1))
     # 去归一化
     # pred = scalar.inverse_transform(pred)
@@ -88,4 +88,4 @@ if __name__ == "__main__":
     print("evaluate WB GRU:")
     utils.show_eval_index(test_WB[-len(pred):, :], pred)
     utils.show_eval_pic(test_WB[-len(pred):, :], pred, 'GRU-Model-exp1', pic_name)
-    utils.write_result_to_file("./RESULT/pred-value-tw1-GRU.csv", pred)
+    utils.write_result_to_file("./RESULT/pred-value-tw1-GRU-exp1.csv", pred)
