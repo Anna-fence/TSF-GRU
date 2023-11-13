@@ -27,6 +27,7 @@ def setup_seed(seed):
 
 
 if __name__ == "__main__":
+    # set up seed, params and device
     setup_seed(10)
     train_window = 100
     n_input = 1
@@ -35,18 +36,16 @@ if __name__ == "__main__":
     model_name = f'tw{100}_epT{epoch}_hiddenT{hidden_size}_lr{lr}_GRUModel_exp2-1'
     pic_name = f"{data_type}_tw{test_window}_lr{lr}_{epoch}_{hidden_size}_exp2-1"
     filepath = './DATA/'
-
-    # 实例化工具包
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     utils = Utils()
 
     print("preparing data...")
     csv_data = pd.read_csv(filepath + dataset, delimiter=',', index_col=0)
     df = pd.DataFrame(csv_data)
-    # 把数据转换为0/1
+    # convert data from dbm to 0/1 (depends on threshold)
     threshold = -100
     for i in range(len(df['WB'])):
         df['WB'][i] = 0 if df['WB'][i] < threshold else 1
-    # df.iloc[:, -1] = 10 * math.log10(df.iloc[:, -1]) + constant
     df.to_csv(filepath + 'ul_interference_data_classification_100.csv')
     WB_RIP_data = df['WB'].values[-200000:]
     WB_RIP_data = WB_RIP_data.reshape((len(WB_RIP_data), 1))
@@ -63,28 +62,21 @@ if __name__ == "__main__":
         print("training model...")
         loss_function = nn.CrossEntropyLoss()
         optimizer_trend = torch.optim.Adam(model.parameters(), lr=lr)
-        # 模型参数设置
         model.set_params(False, train_window, test_window, epoch, optimizer_trend, loss_function,
-                         model_name, k_fold)
-        # 模型训练
+                         model_name, k_fold, device)
         model.train_model_with_batches(model, dataset, batch_size=8)
         print("finish!")
 
     else:
         print("loading model...")
         model.load_state_dict(torch.load(f'./MODEL/GRU/{model_name}.pt'), strict=True)
-        model = model.cuda()
+        model = model.to(device)
         print("finish!")
 
-    # 模型测试
     pred = model.eval_GRU_nf(model, test_WB)
     pred = [1 if i > 0.5 else 0 for i in pred]
     pred = np.array(pred).reshape((len(pred), 1))
-    # 去归一化
-    # pred = scalar.inverse_transform(pred)
 
-    # 测试
-    # utils.show_eval_pic(test_WB[-len(actual_predictions):, :], actual_predictions, '宽带级STL+GRU预测情况', pic_name)
     print("evaluate WB GRU:")
     utils.show_eval_index(test_WB[-len(pred):, :], pred)
     utils.show_eval_pic(test_WB[-len(pred):, :], pred, 'GRU-Model-exp2-1', pic_name)
