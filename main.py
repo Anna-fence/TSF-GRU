@@ -32,8 +32,8 @@ if __name__ == "__main__":
     n_input = 1
     n_output = 1
     data_type = dataset.split('_')[-1]
-    model_name = f'tw{100}_epT{epoch}_hiddenT{hidden_size}_lr{lr}_GRUModel_exp1'
-    pic_name = f"{data_type}_tw{test_window}_lr{lr}_{epoch}_{hidden_size}_exp1"
+    model_name = f'tw{100}_epT{epoch}_hiddenT{hidden_size}_lr{lr}_GRUModel_exp2-1'
+    pic_name = f"{data_type}_tw{test_window}_lr{lr}_{epoch}_{hidden_size}_exp2-1"
     filepath = './DATA/'
 
     # 实例化工具包
@@ -43,11 +43,11 @@ if __name__ == "__main__":
     csv_data = pd.read_csv(filepath + dataset, delimiter=',', index_col=0)
     df = pd.DataFrame(csv_data)
     # 把数据转换为0/1
-    threshold = -105
+    threshold = -100
     for i in range(len(df['WB'])):
         df['WB'][i] = 0 if df['WB'][i] < threshold else 1
     # df.iloc[:, -1] = 10 * math.log10(df.iloc[:, -1]) + constant
-    df.to_csv(filepath + 'ul_interference_data_classification_105.csv')
+    df.to_csv(filepath + 'ul_interference_data_classification_100.csv')
     WB_RIP_data = df['WB'].values[-200000:]
     WB_RIP_data = WB_RIP_data.reshape((len(WB_RIP_data), 1))
     train_WB, test_WB = utils.split_data(WB_RIP_data, train_set_ratio=0.7)
@@ -87,5 +87,5 @@ if __name__ == "__main__":
     # utils.show_eval_pic(test_WB[-len(actual_predictions):, :], actual_predictions, '宽带级STL+GRU预测情况', pic_name)
     print("evaluate WB GRU:")
     utils.show_eval_index(test_WB[-len(pred):, :], pred)
-    utils.show_eval_pic(test_WB[-len(pred):, :], pred, 'GRU-Model-exp1', pic_name)
-    utils.write_result_to_file("./RESULT/pred-value-tw1-GRU-exp1.csv", pred)
+    utils.show_eval_pic(test_WB[-len(pred):, :], pred, 'GRU-Model-exp2-1', pic_name)
+    utils.write_result_to_file("./RESULT/pred-value-tw1-GRU-exp2-1.csv", pred)
