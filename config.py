@@ -2,7 +2,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--lr', type=float, default=1e-4)
-parser.add_argument('--epoch', type=int, default=20)
+parser.add_argument('--epoch', type=int, default=2)
 parser.add_argument('--hidden_size', type=int, default=20)
 parser.add_argument('--test_window', type=int, default=1)
 parser.add_argument('--WBorRB', type=int, default=1)

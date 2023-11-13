@@ -158,11 +158,11 @@ class Utils:
         accuracy = metrics.accuracy_score(true_data, predicted_data)
         recall = metrics.recall_score(true_data, predicted_data)
         precision = metrics.precision_score(true_data, predicted_data)
-        print("ROC_AUC: {}".format(roc_auc))
-        print("F1_score: {}".format(f1_score))
-        print("accuracy: {}".format(accuracy))
-        print("recall: {}".format(recall))
-        print("precision: {}".format(precision))
+        print("ROC_AUC: {:.3f}".format(roc_auc))
+        print("F1_score: {:.3f}".format(f1_score))
+        print("accuracy: {:.3f}".format(accuracy))
+        print("recall: {:.3f}".format(recall))
+        print("precision: {:.3f}".format(precision))
         return {
             'ROC_AUC': roc_auc,
             'F1_score': f1_score,
