@@ -77,7 +77,7 @@ class Utils:
         for i in range(L - train_window - test_window - 100):
             train_seq = input_data[i: i + train_window, :]
             train_X.append(train_seq)
-            # 间隔99个数
+            # 间隔100个数
             train_label = input_data[i + train_window + 100: i + train_window + 100 + test_window, :]
             # train_label = input_data[i + train_window: i + train_window + test_window, :]
             train_Y.append(train_label)
@@ -151,32 +151,51 @@ class Utils:
 
     @staticmethod
     def show_eval_index(true_data, predicted_data):
-        n = len(true_data)
-        p = 1
         predicted_data = np.array(predicted_data).reshape(-1, 1)
         true_data = np.array(true_data).reshape(-1, 1)
-        mean_absolute_error = metrics.mean_absolute_error(true_data, predicted_data)  # MAE
-        mean_squared_error = metrics.mean_squared_error(true_data, predicted_data)  # MSE
-        R2 = metrics.r2_score(true_data, predicted_data)  # R square
-        root_mean_squared_error = mean_squared_error ** 0.5  # RMSE
-        adjusted_R2 = 1 - ((1 - R2) * (n - 1)) / (n - p - 1)  # adjusted R square, 消除了样本数量对结果的影响
-        MAPE = metrics.mean_absolute_percentage_error(true_data, predicted_data)
-
-        print("平均绝对误差(MAE)：{}".format(mean_absolute_error))
-        print("均方误差(MSE)：{}".format(mean_squared_error))
-        print("根均方误差(RMSE)：{}".format(root_mean_squared_error))
-        print("测试集(R^2)：{}".format(R2))
-        print("测试集(adjusted R^2)：{}".format(adjusted_R2))
-        print("MAPE: {}".format(MAPE))
-
+        roc_auc = metrics.roc_auc_score(true_data, predicted_data)
+        f1_score = metrics.f1_score(true_data, predicted_data)
+        accuracy = metrics.accuracy_score(true_data, predicted_data)
+        recall = metrics.recall_score(true_data, predicted_data)
+        precision = metrics.precision_score(true_data, predicted_data)
+        print("ROC_AUC: {}".format(roc_auc))
+        print("F1_score: {}".format(f1_score))
+        print("accuracy: {}".format(accuracy))
+        print("recall: {}".format(recall))
+        print("precision: {}".format(precision))
         return {
-            'MAE': mean_absolute_error,
-            'MSE': mean_squared_error,
-            'RMSE': root_mean_squared_error,
-            'R2': R2,
-            'adjusted_R2': adjusted_R2,
-            "MAPE": MAPE
+            'ROC_AUC': roc_auc,
+            'F1_score': f1_score,
+            'accuracy': accuracy,
+            'recall': recall,
+            'precision': precision
         }
+        # n = len(true_data)
+        # p = 1
+        # predicted_data = np.array(predicted_data).reshape(-1, 1)
+        # true_data = np.array(true_data).reshape(-1, 1)
+        # mean_absolute_error = metrics.mean_absolute_error(true_data, predicted_data)  # MAE
+        # mean_squared_error = metrics.mean_squared_error(true_data, predicted_data)  # MSE
+        # R2 = metrics.r2_score(true_data, predicted_data)  # R square
+        # root_mean_squared_error = mean_squared_error ** 0.5  # RMSE
+        # adjusted_R2 = 1 - ((1 - R2) * (n - 1)) / (n - p - 1)  # adjusted R square, 消除了样本数量对结果的影响
+        # MAPE = metrics.mean_absolute_percentage_error(true_data, predicted_data)
+        #
+        # print("平均绝对误差(MAE)：{}".format(mean_absolute_error))
+        # print("均方误差(MSE)：{}".format(mean_squared_error))
+        # print("根均方误差(RMSE)：{}".format(root_mean_squared_error))
+        # print("测试集(R^2)：{}".format(R2))
+        # print("测试集(adjusted R^2)：{}".format(adjusted_R2))
+        # print("MAPE: {}".format(MAPE))
+        #
+        # return {
+        #     'MAE': mean_absolute_error,
+        #     'MSE': mean_squared_error,
+        #     'RMSE': root_mean_squared_error,
+        #     'R2': R2,
+        #     'adjusted_R2': adjusted_R2,
+        #     "MAPE": MAPE
+        # }
 
     @staticmethod
     def write_result_to_file(file_name, predicted_data):
